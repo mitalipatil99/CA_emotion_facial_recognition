@@ -142,10 +142,10 @@ def emotion_detection(mode):
                             2, cv2.LINE_AA)
 
                 if len(emotion_ten_array) == 10:
-                    print(emotion_ten_array)
                     user_emotion = md(emotion_ten_array)
-                    print(user_emotion)
+                    curr_user_emotion = user_emotion
                     emotion_ten_array.clear()
+                    return curr_user_emotion
                 else:
                     emotion_ten_array.append(emotion_dict[maxindex])
 
@@ -156,8 +156,3 @@ def emotion_detection(mode):
 
         cap.release()
         cv2.destroyAllWindows()
-
-        # every second, 10 emotions, return mode emotion,
-        # update emotion col in  database only after id and name is updated.
-        # update database every 10 seconds.
-        # sqllite

@@ -171,7 +171,13 @@ def main():
 #
 #     ##TODO: if no face detected in at least 7 images, print no face found
     
-    emotion_detection("display")
+    curr_user_emotion = emotion_detection("display")
+    logging.info("curr user emotion:"+curr_user_emotion)
+    logging.info("updating user emotion in the database...")
+    cur.execute(f"UPDATE users SET emotion= curr_user_emotion WHERE current_user = 1;")
+
+
+
     
     
     close_connection(cur,con) #at the end of session
