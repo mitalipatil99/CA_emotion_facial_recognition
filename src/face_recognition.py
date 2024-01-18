@@ -19,7 +19,7 @@ def capture_image():
     camera = cv2.VideoCapture(0)
     for i in range(5):
         return_value, image = camera.read()
-        cv2.imwrite('current_user_images/opencv'+str(i)+'.png', image)
+        cv2.imwrite('src\\current_user_images\\opencv'+str(i)+'.png', image)
         time.sleep(2)
     del(camera)
 

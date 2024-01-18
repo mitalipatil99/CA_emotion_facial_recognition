@@ -21,14 +21,15 @@ logger.setLevel(logging.INFO)
 
 
 def connect_to_db():
-    con = sqlite3.connect("../sql_database/users.db")
+    con = sqlite3.connect("sql_database\\users.db")
     cur = con.cursor()
+    # cur.execute("DELETE FROM users WHERE 1=1")
     cur.execute("""CREATE TABLE IF NOT EXISTS users (
         userid INTEGER PRIMARY KEY, 
         name TEXT, 
         current_user BOOLEAN,
         emotion TEXT
-        );""") ##TODO: Add column
+        );""")
     cur.execute("UPDATE users SET current_user = 0;")
     return cur, con  
 
@@ -44,17 +45,18 @@ def add_new_user(cur, name):
         new_label = 1
     #make newest user as current user
     cur.execute(f"INSERT INTO users(userid, name, current_user) VALUES({new_label},'{name}', 1);")
-    logging.info(f"Added new user {name} to table...")
     
-    source = "current_user_images"
-    destination = f"data/s{new_label}"
+    source = "src\\current_user_images"
+    destination = f"src\\data\\s{new_label}"
     
     os.mkdir(destination)
     imgs = os.listdir(source)
+    print(imgs)
     for img in imgs:
         src_path = os.path.join(source, img)
         dst_path = os.path.join(destination, img)
         shutil.move(src_path, dst_path)
+    logging.info(f"Added new user {name} to table...")
     
 #     return name
 
@@ -98,12 +100,8 @@ def close_connection(cur, con):
     logging.info("Connection closed...")
     
     #delete images from current_user_images
-#     source = "current_user_images"
-#     imgs = os.listdir(source)
-#     for img in imgs:
-#         os.remove(f"{source}/{img}")
-    shutil.rmtree("current_user_images")
-    os.mkdir("current_user_images")
+    shutil.rmtree("src\\current_user_images")
+    os.mkdir("src\\current_user_images")
     logging.info("Deleted all images from folder current_user_images...")
 
 
@@ -122,11 +120,11 @@ def main():
     face_recognized = False
     label = 0
     logging.info("Predicting user...")
-    img_list = os.listdir("current_user_images")
+    img_list = os.listdir("src\\current_user_images")
     for img in img_list:
         if img.startswith("."):
             continue
-        image_path = "current_user_images/" + img
+        image_path = "src\\current_user_images\\" + img
         #read image
         image = cv2.imread(image_path)
         #detect face
@@ -140,7 +138,7 @@ def main():
                 logging.info("0 users in system currently, breaking from loop...")
                 break
             else:
-                faces, labels = prepare_training_data("data")
+                faces, labels = prepare_training_data("src\\data")
                 face_recognizer = train_model(faces, labels)
                 subjects = create_subjects_list(cur)
                 predicted_img, label_text, label = predict(image, face_recognizer, subjects)
@@ -168,17 +166,19 @@ def main():
 #         name = input("What is your name?") ## TODO: Add "Placeholder string"
         name = "PLACEHOLDER"
         add_new_user(cur, name)
-#
+   # delete images from current_user_images
+    shutil.rmtree("src\\current_user_images")
+    os.mkdir("src\\current_user_images")
+    logging.info("Deleted all images from folder current_user_images...")
 #     ##TODO: if no face detected in at least 7 images, print no face found
-    
-    curr_user_emotion = emotion_detection("display")
-    logging.info("curr user emotion:"+curr_user_emotion)
-    logging.info("updating user emotion in the database...")
-    cur.execute(f"UPDATE users SET emotion= curr_user_emotion WHERE current_user = 1;")
+    while(True):
+        curr_user_emotion = emotion_detection("display")
+        logging.info("curr user emotion:"+curr_user_emotion)
+        logging.info("updating user emotion in the database...")
+        logging.info(f"executing query: UPDATE users SET emotion= '{curr_user_emotion}' WHERE current_user = 1;")
+        cur.execute(f"UPDATE users SET emotion= '{curr_user_emotion}' WHERE current_user = 1;")
+        con.commit()
 
-
-
-    
     
     close_connection(cur,con) #at the end of session
 
